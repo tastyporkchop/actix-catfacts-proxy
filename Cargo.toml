@@ -14,3 +14,4 @@ awc = { version="0.2.4", features=["rust-tls"] }
 futures = "0.1.28"
 log = "0.4.8"
 env_logger = "0.6.2"
+bytes = "0.4.12"

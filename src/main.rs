@@ -6,6 +6,7 @@ use actix_web::{
     get, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web::web::route;
+use bytes::Bytes;
 
 #[get("/resource1/{name}/index.html")]
 fn index(req: HttpRequest, name: web::Path<String>) -> String {
@@ -46,6 +47,7 @@ fn main() -> std::io::Result<()> {
             )
             .service(web::resource("/test1.html").to(|| "Test\r\n"))
             .service( catfacts_async)
+            .service( catfacts_async2)
     })
         .bind("127.0.0.1:8080")?
         .workers(1)
@@ -75,5 +77,32 @@ fn catfacts_async(req: HttpRequest) -> impl Future<Item = HttpResponse, Error = 
                     HttpResponse::Ok().content_type("application/json").body(body)
                 })
 
+        })
+}
+
+#[get("/catfacts2")]
+fn catfacts_async2(req: HttpRequest) -> impl Future<Item = HttpResponse, Error = actix_web::Error> {
+    async_req("https://cat-fact.herokuapp.com/facts/random")
+        .map(|body| {
+            // Do something with body here
+            info!("Downloaded: {:?} bytes", body.len());
+            HttpResponse::Ok().content_type("application/json").body(body)
+        })
+}
+
+fn async_req(target: &str) -> impl Future<Item = Bytes, Error = actix_web::Error>{
+    awc::Client::new()
+        .get(target) // <- Create request builder
+        .header("User-Agent", "Actix-web")
+        .send() // <- Send http request
+        .from_err()
+        .and_then(|mut response| {
+            // <- server http response
+            info!("Response: {:?}", response);
+
+            // read response body
+            response
+                .body()
+                .from_err()
         })
 }
