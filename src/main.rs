@@ -5,7 +5,6 @@ use std::str;
 use actix_web::{
     get, middleware, web, App, Error, HttpRequest, HttpResponse, HttpServer,
 };
-use actix_web::web::route;
 use bytes::Bytes;
 
 #[get("/resource1/{name}/index.html")]
